@@ -4,6 +4,7 @@ from uuid import uuid4
 from dotenv import load_dotenv
 from pinecone import Pinecone, ServerlessSpec
 from sentence_transformers import SentenceTransformer
+import json
 
 # ---------------- ENV + SETUP ----------------
 load_dotenv()
@@ -29,7 +30,12 @@ model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
 
 # ---------------- FUNCTION ----------------
-def fetch_questions(topic: str = "", difficulty: str = "Medium", previous_ids=None, max_results: int = 1):
+def fetch_questions(
+    topic: str = "",
+    difficulty: str = "Medium",
+    previous_ids: list = [],
+    max_results: int = 1
+):
     """
     Fetch questions from Pinecone based on topic, difficulty, and previously asked question IDs.
 
@@ -42,7 +48,6 @@ def fetch_questions(topic: str = "", difficulty: str = "Medium", previous_ids=No
     Returns:
         list[dict]: [{'id', 'question', 'answer', 'difficulty', 'skill', 'unit'}]
     """
-    previous_ids = previous_ids or []
 
     # --- Step 1: Create embedding for topic ---
     query_text = topic if topic else "technical interview question"
@@ -72,9 +77,9 @@ def fetch_questions(topic: str = "", difficulty: str = "Medium", previous_ids=No
 
     # --- Step 4: Randomize and return subset ---
     random.shuffle(results)
-    return results[:max_results]
-
-
+    subset = results[:max_results]
+    json_string = json.dumps(subset, indent=2)  # indent=2 makes it pretty-printed
+    return json_string
 # ---------------- TEST / DEMO ----------------
 if __name__ == "__main__":
     questions = fetch_questions(topic="Spring Boot", difficulty="Medium")
